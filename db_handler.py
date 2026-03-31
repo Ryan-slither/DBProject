@@ -26,7 +26,9 @@ def add_item(new_item: Item | None = None):
     new_item - An Item object containing a new item to be inserted into the DB in the item table.
         new_item and its attributes will never be None.
     """
-    
+    cur.execute("SELECT MAX(i_item_sk) FROM Item;")
+    row = cur.fetchone()
+    print(row)
 
 
 def add_customer(new_customer: Customer | None = None):
@@ -96,7 +98,91 @@ def get_filtered_items(
     """
     Returns a list of Item objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            SELECT *
+            FROM Item
+            """
+    string_symbol = "LIKE" if use_patterns else "="
+
+    where_list = []
+    where_values = []
+    if filter_attributes is not None:
+        if filter_attributes.item_id is not None:
+            where_list.append(f"i_item_id {string_symbol} ?")
+            where_values.append(filter_attributes.item_id)
+
+        if filter_attributes.product_name is not None:
+            where_list.append(f"i_product_name {string_symbol} ?")
+            where_values.append(filter_attributes.product_name)
+
+        if filter_attributes.brand is not None:
+            where_list.append(f"i_brand {string_symbol} ?")
+            where_values.append(filter_attributes.brand)
+
+        if filter_attributes.category is not None:
+            where_list.append(f"i_category {string_symbol} ?")
+            where_values.append(filter_attributes.category)
+
+        if filter_attributes.manufact is not None:
+            where_list.append(f"i_manufact {string_symbol} ?")
+            where_values.append(filter_attributes.manufact)
+
+        if filter_attributes.current_price != -1:
+            where_list.append("i_current_price = ?")
+            where_values.append(filter_attributes.current_price)
+
+        if filter_attributes.start_year != -1:
+            where_list.append("YEAR(i_rec_start_date) = ?")
+            where_values.append(filter_attributes.start_year)
+
+        if filter_attributes.num_owned != -1:
+            where_list.append("i_num_owned = ?")
+            where_values.append(filter_attributes.num_owned)
+
+    if min_price != -1:
+        where_list.append("i_current_price >= ?")
+        where_values.append(min_price)
+
+    if max_price != -1:
+        where_list.append("i_current_price <= ?")
+        where_values.append(max_price)
+
+    if min_start_year != -1:
+        where_list.append("YEAR(i_rec_start_date) >= ?")
+        where_values.append(min_start_year)
+
+    if max_start_year != -1:
+        where_list.append("YEAR(i_rec_start_date) <= ?")
+        where_values.append(max_start_year)
+
+    if len(where_list) > 0:
+        query += "WHERE "
+        for cond in where_list:
+            query += cond
+            if cond != where_list[-1]:
+                query += "\n"
+                query += " AND "
+
+    query += ";"
+    print(query)
+    print()
+    cur.execute(query, tuple(where_values))
+    items = []
+    for row in cur:
+        items.append(
+            Item(
+                item_id=row[1],
+                product_name=row[3],
+                brand=row[4],
+                category=row[6],
+                manufact=row[7],
+                current_price=row[8],
+                start_year=row[2].year,
+                num_owned=row[9],
+            )
+        )
+
+    return items
 
 
 def get_filtered_customers(
