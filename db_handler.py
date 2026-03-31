@@ -26,7 +26,13 @@ def add_item(new_item: Item | None = None):
     new_item - An Item object containing a new item to be inserted into the DB in the item table.
         new_item and its attributes will never be None.
     """
+
+    query = """
+        INSERT INTO item (i_item_sk, i_item_id, i_rec_start_date, i_product_name, i_brand, i_class, i_category, i_manufact, i_current_price, i_num_owned)
+        VALUES (None, new_item.item_id, new_item.start_year, new_item.product_name, new_item.brand, None, new_item.category, new_item.manufact,  new_item.current_price, new_item.num_owned);
+    """
     
+    cur.execute(query)
 
 
 def add_customer(new_customer: Customer | None = None):
