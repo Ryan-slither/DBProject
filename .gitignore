@@ -1,2 +1,4 @@
 tpcds_data/
 MARIADB_CREDS.py
+__pycache__/
+.venv/
