@@ -26,7 +26,7 @@ def add_item(new_item: Item | None = None):
     new_item - An Item object containing a new item to be inserted into the DB in the item table.
         new_item and its attributes will never be None.
     """
-    raise NotImplementedError("you must implement this function")
+    
 
 
 def add_customer(new_customer: Customer | None = None):
@@ -172,11 +172,12 @@ def save_changes():
     """
     Commits all changes made to the db.
     """
-    raise NotImplementedError("you must implement this function")
+    conn.commit()
 
 
 def close_connection():
     """
     Closes the cursor and connection.
     """
-    raise NotImplementedError("you must implement this function")
+    cur.close()
+    conn.close()
