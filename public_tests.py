@@ -20,7 +20,7 @@ class PublicTests(TestCase):
     @classmethod
     def tearDownClass(cls):
         try:
-            cls._reset(cls)
+            cls._reset(cls)  # pyright: ignore[reportArgumentType]
             cls.db.cur.close()
             cls.db.conn.close()
         except Exception:
@@ -343,6 +343,22 @@ class PublicTests(TestCase):
         results = self.db.get_filtered_customers(
             filter_attributes=Customer(email="public.tester%"), use_patterns=True
         )
+        actual_ids = [r.customer_id for r in results]
+        self.assertIn(customer.customer_id, actual_ids)
+
+    def test_get_filtered_customers_address_name(self):
+        # ("5678", "Test Ave", "Gainesville", "FL", "32601"),
+        # (customer.customer_id, "Public", "Tester", customer.email, addr_sk),
+        customer = self._insert_customer()
+
+        results = self.db.get_filtered_customers(
+            filter_attributes=Customer(
+                name="Public Tester",
+                address="5678 Test Ave, Gainesville, FL 32601",
+            ),
+            use_patterns=False,
+        )
+
         actual_ids = [r.customer_id for r in results]
         self.assertIn(customer.customer_id, actual_ids)
 
