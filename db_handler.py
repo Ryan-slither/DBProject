@@ -40,7 +40,12 @@ def add_customer(new_customer: Customer | None = None):
     new_customer - A Customer object containing a new customer to be inserted into the DB in the customer table.
         new_customer and its attributes will never be None.
     """
-    raise NotImplementedError("you must implement this function")
+    
+    first_name, last_name = new_customer.name.split(" ")
+    query = """
+        INSERT INTO customer (c_customer_sk, c_customer_id, c_first_name, c_last_name, c_email_address, c_current_addr_sk)
+        VALUES (None, new_customer.customer_id, first_name, last_name, new_customer.email, new_customer.address);
+    """
 
 
 def edit_customer(
@@ -334,7 +339,7 @@ def get_filtered_rentals(
                 query += " AND "
 
     query += ";"
-    print(query)
+    print("get_filtered_rentals completed")
     print()
     cur.execute(query, tuple(where_values))
     rentals = []
