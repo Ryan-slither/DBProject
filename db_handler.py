@@ -58,12 +58,44 @@ def add_customer(new_customer: Customer | None = None):
     new_customer - A Customer object containing a new customer to be inserted into the DB in the customer table.
         new_customer and its attributes will never be None.
     """
-    
+
+    if new_customer is None:
+        raise ValueError("new_customer cannot be None")
+
+    cur.execute(
+        "SELECT COALESCE(MAX(ca_address_sk), 0) + 1 FROM customer_address AS tmp;"
+    )
+    addr_sk = cur.fetchone()[0]
+
+    addr_query = """
+                INSERT INTO customer_address (ca_address_sk, ca_street_number, ca_street_name, ca_city, ca_state, ca_zip)
+                VALUES (?, ?, ?, ?, ?, ?);
+                """
+
+    street_info, city, state_info = map(
+        lambda x: x.strip(), new_customer.address.split(",")
+    )
+    street_number, street_name = street_info.split(" ", maxsplit=1)
+    state, zip = state_info.split(" ")
+
+    cur.execute(addr_query, (addr_sk, street_number, street_name, city, state, zip))
+
     first_name, last_name = new_customer.name.split(" ")
     query = """
-        INSERT INTO customer (c_customer_sk, c_customer_id, c_first_name, c_last_name, c_email_address, c_current_addr_sk)
-        VALUES (None, new_customer.customer_id, first_name, last_name, new_customer.email, new_customer.address);
-    """
+            INSERT INTO customer (c_customer_sk, c_customer_id, c_first_name, c_last_name, c_email_address, c_current_addr_sk)
+            VALUES ((SELECT COALESCE(MAX(c_customer_sk), 0) + 1 FROM customer AS tmp), ?, ?, ?, ?, ?);
+            """
+
+    cur.execute(
+        query,
+        (
+            new_customer.customer_id,
+            first_name,
+            last_name,
+            new_customer.email,
+            addr_sk,
+        ),
+    )
 
 
 def edit_customer(
