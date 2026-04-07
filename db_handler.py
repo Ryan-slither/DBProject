@@ -27,12 +27,30 @@ def add_item(new_item: Item | None = None):
         new_item and its attributes will never be None.
     """
 
-    query = """
-        INSERT INTO item (i_item_sk, i_item_id, i_rec_start_date, i_product_name, i_brand, i_class, i_category, i_manufact, i_current_price, i_num_owned)
-        VALUES (None, new_item.item_id, new_item.start_year, new_item.product_name, new_item.brand, None, new_item.category, new_item.manufact,  new_item.current_price, new_item.num_owned);
-    """
+    if new_item is None:
+        raise ValueError("new_item cannot be None")
 
-    cur.execute(query)
+    query = """
+            INSERT INTO item (i_item_sk, i_item_id, i_rec_start_date, i_product_name, i_brand, i_class, i_category, i_manufact, i_current_price, i_num_owned)
+            VALUES (
+                (SELECT COALESCE(MAX(i_item_sk), 0) + 1 FROM item AS tmp), 
+                ?, ?, ?, ?, NULL, ?, ?, ?, ?
+            );
+            """
+
+    cur.execute(
+        query,
+        (
+            new_item.item_id,
+            f"{new_item.start_year}-01-01",
+            new_item.product_name,
+            new_item.brand,
+            new_item.category,
+            new_item.manufact,
+            new_item.current_price,
+            new_item.num_owned,
+        ),
+    )
 
 
 def add_customer(new_customer: Customer | None = None):
@@ -294,7 +312,7 @@ def get_filtered_rentals(
             SELECT *
             FROM rental
             """
-    
+
     where_list = []
     where_values = []
     if filter_attributes is not None:
@@ -346,10 +364,7 @@ def get_filtered_rentals(
     for row in cur:
         rentals.append(
             Rental(
-                item_id=row[1],
-                customer_id=row[2],
-                rental_date=row[3],
-                due_date=row[4]
+                item_id=row[1], customer_id=row[2], rental_date=row[3], due_date=row[4]
             )
         )
 
@@ -372,7 +387,7 @@ def get_filtered_rental_histories(
             SELECT *
             FROM rental_history
             """
-    
+
     where_list = []
     where_values = []
     if filter_attributes is not None:
@@ -391,7 +406,7 @@ def get_filtered_rental_histories(
         if filter_attributes.due_date is not None:
             where_list.append(f"due_date = ?")
             where_values.append(filter_attributes.due_date)
-        
+
         if filter_attributes.return_date is not None:
             where_list.append(f"return_date = ?")
             where_values.append(filter_attributes.return_date)
@@ -440,7 +455,7 @@ def get_filtered_rental_histories(
                 customer_id=row[2],
                 rental_date=row[3],
                 due_date=row[4],
-                return_date=row[5]
+                return_date=row[5],
             )
         )
 
@@ -498,11 +513,7 @@ def get_filtered_waitlist(
     waitlists = []
     for row in cur:
         waitlists.append(
-            Waitlist(
-                item_id=row[1],
-                customer_id=row[2],
-                place_in_line=row[3]
-            )
+            Waitlist(item_id=row[1], customer_id=row[2], place_in_line=row[3])
         )
 
     return waitlists
