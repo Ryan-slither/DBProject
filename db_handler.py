@@ -208,7 +208,70 @@ def get_filtered_rentals(
     """
     Returns a list of Rental objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            SELECT *
+            FROM rental
+            """
+    
+    where_list = []
+    where_values = []
+    if filter_attributes is not None:
+        if filter_attributes.item_id is not None:
+            where_list.append(f"item_id = ?")
+            where_values.append(filter_attributes.item_id)
+
+        if filter_attributes.customer_id is not None:
+            where_list.append(f"customer_id = ?")
+            where_values.append(filter_attributes.customer_id)
+
+        if filter_attributes.rental_date is not None:
+            where_list.append(f"rental_date = ?")
+            where_values.append(filter_attributes.rental_date)
+
+        if filter_attributes.due_date is not None:
+            where_list.append(f"due_date = ?")
+            where_values.append(filter_attributes.due_date)
+
+    if min_rental_date is not None:
+        where_list.append("rental_date >= ?")
+        where_values.append(min_rental_date)
+
+    if max_rental_date is not None:
+        where_list.append("rental_date <= ?")
+        where_values.append(max_rental_date)
+
+    if min_due_date is not None:
+        where_list.append("due_date >= ?")
+        where_values.append(min_due_date)
+
+    if max_due_date is not None:
+        where_list.append("due_date <= ?")
+        where_values.append(max_due_date)
+
+    if len(where_list) > 0:
+        query += "WHERE "
+        for cond in where_list:
+            query += cond
+            if cond != where_list[-1]:
+                query += "\n"
+                query += " AND "
+
+    query += ";"
+    print(query)
+    print()
+    cur.execute(query, tuple(where_values))
+    rentals = []
+    for row in cur:
+        rentals.append(
+            Rental(
+                item_id=row[1],
+                customer_id=row[2],
+                rental_date=row[3],
+                due_date=row[4]
+            )
+        )
+
+    return rentals
 
 
 def get_filtered_rental_histories(
@@ -223,7 +286,83 @@ def get_filtered_rental_histories(
     """
     Returns a list of RentalHistory objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            SELECT *
+            FROM rental_history
+            """
+    
+    where_list = []
+    where_values = []
+    if filter_attributes is not None:
+        if filter_attributes.item_id is not None:
+            where_list.append(f"item_id = ?")
+            where_values.append(filter_attributes.item_id)
+
+        if filter_attributes.customer_id is not None:
+            where_list.append(f"customer_id = ?")
+            where_values.append(filter_attributes.customer_id)
+
+        if filter_attributes.rental_date is not None:
+            where_list.append(f"rental_date = ?")
+            where_values.append(filter_attributes.rental_date)
+
+        if filter_attributes.due_date is not None:
+            where_list.append(f"due_date = ?")
+            where_values.append(filter_attributes.due_date)
+        
+        if filter_attributes.return_date is not None:
+            where_list.append(f"return_date = ?")
+            where_values.append(filter_attributes.return_date)
+
+    if min_rental_date is not None:
+        where_list.append("rental_date >= ?")
+        where_values.append(min_rental_date)
+
+    if max_rental_date is not None:
+        where_list.append("rental_date <= ?")
+        where_values.append(max_rental_date)
+
+    if min_due_date is not None:
+        where_list.append("due_date >= ?")
+        where_values.append(min_due_date)
+
+    if max_due_date is not None:
+        where_list.append("due_date <= ?")
+        where_values.append(max_due_date)
+
+    if min_return_date is not None:
+        where_list.append("return_date >= ?")
+        where_values.append(min_return_date)
+
+    if max_return_date is not None:
+        where_list.append("return_date <= ?")
+        where_values.append(max_return_date)
+
+    if len(where_list) > 0:
+        query += "WHERE "
+        for cond in where_list:
+            query += cond
+            if cond != where_list[-1]:
+                query += "\n"
+                query += " AND "
+
+    query += ";"
+    print(query)
+    print()
+    cur.execute(query, tuple(where_values))
+    rentalHistories = []
+    for row in cur:
+        rentalHistories.append(
+            RentalHistory(
+                item_id=row[1],
+                customer_id=row[2],
+                rental_date=row[3],
+                due_date=row[4],
+                return_date=row[5]
+            )
+        )
+
+    return rentalHistories
 
 
 def get_filtered_waitlist(
@@ -234,7 +373,57 @@ def get_filtered_waitlist(
     """
     Returns a list of Waitlist objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            SELECT *
+            FROM Item
+            """
+
+    where_list = []
+    where_values = []
+    if filter_attributes is not None:
+        if filter_attributes.item_id is not None:
+            where_list.append(f"item_id = ?")
+            where_values.append(filter_attributes.item_id)
+
+        if filter_attributes.customer_id is not None:
+            where_list.append(f"customer_id = ?")
+            where_values.append(filter_attributes.customer_id)
+
+        if filter_attributes.place_in_line is not None:
+            where_list.append(f"place_in_line = ?")
+            where_values.append(filter_attributes.place_in_line)
+
+    if min_place_in_line != -1:
+        where_list.append("place_in_line >= ?")
+        where_values.append(min_place_in_line)
+
+    if max_place_in_line != -1:
+        where_list.append("place_in_line <= ?")
+        where_values.append(max_place_in_line)
+
+    if len(where_list) > 0:
+        query += "WHERE "
+        for cond in where_list:
+            query += cond
+            if cond != where_list[-1]:
+                query += "\n"
+                query += " AND "
+
+    query += ";"
+    print(query)
+    print()
+    cur.execute(query, tuple(where_values))
+    waitlists = []
+    for row in cur:
+        waitlists.append(
+            Waitlist(
+                item_id=row[1],
+                customer_id=row[2],
+                place_in_line=row[3]
+            )
+        )
+
+    return waitlists
 
 
 def number_in_stock(item_id: str | None = None) -> int:
