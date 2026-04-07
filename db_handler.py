@@ -31,7 +31,7 @@ def add_item(new_item: Item | None = None):
         INSERT INTO item (i_item_sk, i_item_id, i_rec_start_date, i_product_name, i_brand, i_class, i_category, i_manufact, i_current_price, i_num_owned)
         VALUES (None, new_item.item_id, new_item.start_year, new_item.product_name, new_item.brand, None, new_item.category, new_item.manufact,  new_item.current_price, new_item.num_owned);
     """
-    
+
     cur.execute(query)
 
 
@@ -168,8 +168,6 @@ def get_filtered_items(
                 query += " AND "
 
     query += ";"
-    print(query)
-    print()
     cur.execute(query, tuple(where_values))
     items = []
     for row in cur:
@@ -195,7 +193,86 @@ def get_filtered_customers(
     """
     Returns a list of Customer objects matching the filters.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            SELECT *
+            FROM customer
+            INNER JOIN customer_address
+            ON customer.c_current_addr_sk = customer_address.ca_address_sk
+            """
+    string_symbol = "LIKE" if use_patterns else "="
+
+    where_list = []
+    where_values = []
+    if filter_attributes is not None:
+        if filter_attributes.customer_id is not None:
+            where_list.append(f"c_customer_id {string_symbol} ?")
+            where_values.append(filter_attributes.customer_id)
+
+        if filter_attributes.email is not None:
+            where_list.append(f"c_email_address {string_symbol} ?")
+            where_values.append(filter_attributes.email)
+
+        if filter_attributes.name is not None:
+            first_name, last_name = filter_attributes.name.split(" ")
+            where_list.append(
+                f"c_first_name {string_symbol} ? AND c_last_name {string_symbol} ?"
+            )
+            where_values.append(first_name)
+            where_values.append(last_name)
+
+        if filter_attributes.address is not None:
+            street_info, city, state_info = map(
+                lambda x: x.strip(), filter_attributes.address.split(",")
+            )
+            street_number, street_name = street_info.split(" ", maxsplit=1)
+            state, zip = state_info.split(" ")
+
+            ca_sk_query = f"""
+                         SELECT ca_address_sk 
+                         FROM customer_address
+                         INNER JOIN customer
+                         ON customer.c_current_addr_sk = customer_address.ca_address_sk
+                         WHERE ca_street_number {string_symbol} ? AND
+                               ca_street_name {string_symbol} ? AND
+                               ca_city {string_symbol} ? AND
+                               ca_state {string_symbol} ? AND
+                               ca_zip {string_symbol} ?;
+                         """
+            cur.execute(ca_sk_query, (street_number, street_name, city, state, zip))
+            ca_sk_results = cur.fetchall()
+            ca_sk_list = [str(row[0]) for row in ca_sk_results]
+            where_list.append(f"c_current_addr_sk IN ({','.join(ca_sk_list)})")
+
+    if len(where_list) > 0:
+        query += "WHERE "
+        for cond in where_list:
+            query += cond
+            if cond != where_list[-1]:
+                query += "\n"
+                query += " AND "
+
+    query += ";"
+    cur.execute(query, tuple(where_values))
+    customers = []
+    for row in cur:
+        customers.append(
+            Customer(
+                customer_id=row[1],
+                email=row[4],
+                name=row[2] + " " + row[3],
+                address=row[7]
+                + " "
+                + row[8]
+                + ", "
+                + row[9]
+                + ", "
+                + row[10]
+                + " "
+                + row[11],
+            )
+        )
+
+    return customers
 
 
 def get_filtered_rentals(
