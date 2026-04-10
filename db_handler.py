@@ -1,5 +1,3 @@
-from datetime import date, timedelta
-
 from mariadb import connect
 
 from MARIADB_CREDS import DB_CONFIG
@@ -167,7 +165,7 @@ def rent_item(item_id: str | None = None, customer_id: str | None = None):
     """
     if item_id is None:
         raise ValueError("item_id cannot be None")
-    
+
     if customer_id is None:
         raise ValueError("customer_id cannot be None")
 
@@ -180,10 +178,7 @@ def rent_item(item_id: str | None = None, customer_id: str | None = None):
 
     cur.execute(
         query,
-        (
-            item_id,
-            customer_id
-        ),
+        (item_id, customer_id),
     )
 
 
@@ -195,10 +190,10 @@ def waitlist_customer(
     """
     if item_id is None:
         raise ValueError("item_id cannot be None")
-    
+
     if customer_id is None:
         raise ValueError("customer_id cannot be None")
-    
+
     cur.execute("SELECT COUNT(*) FROM waitlist")
     last_line_place = cur.fetchone()[0] + 1
 
@@ -211,12 +206,10 @@ def waitlist_customer(
 
     cur.execute(
         query,
-        (
-            item_id,
-            customer_id,
-            last_line_place
-        ),
+        (item_id, customer_id, last_line_place),
     )
+
+    return last_line_place
 
 
 def update_waitlist(item_id: str | None = None):
@@ -443,19 +436,19 @@ def get_filtered_rentals(
     where_values = []
     if filter_attributes is not None:
         if filter_attributes.item_id is not None:
-            where_list.append(f"item_id = ?")
+            where_list.append("item_id = ?")
             where_values.append(filter_attributes.item_id)
 
         if filter_attributes.customer_id is not None:
-            where_list.append(f"customer_id = ?")
+            where_list.append("customer_id = ?")
             where_values.append(filter_attributes.customer_id)
 
         if filter_attributes.rental_date is not None:
-            where_list.append(f"rental_date = ?")
+            where_list.append("rental_date = ?")
             where_values.append(filter_attributes.rental_date)
 
         if filter_attributes.due_date is not None:
-            where_list.append(f"due_date = ?")
+            where_list.append("due_date = ?")
             where_values.append(filter_attributes.due_date)
 
     if min_rental_date is not None:
@@ -518,23 +511,23 @@ def get_filtered_rental_histories(
     where_values = []
     if filter_attributes is not None:
         if filter_attributes.item_id is not None:
-            where_list.append(f"item_id = ?")
+            where_list.append("item_id = ?")
             where_values.append(filter_attributes.item_id)
 
         if filter_attributes.customer_id is not None:
-            where_list.append(f"customer_id = ?")
+            where_list.append("customer_id = ?")
             where_values.append(filter_attributes.customer_id)
 
         if filter_attributes.rental_date is not None:
-            where_list.append(f"rental_date = ?")
+            where_list.append("rental_date = ?")
             where_values.append(filter_attributes.rental_date)
 
         if filter_attributes.due_date is not None:
-            where_list.append(f"due_date = ?")
+            where_list.append("due_date = ?")
             where_values.append(filter_attributes.due_date)
 
         if filter_attributes.return_date is not None:
-            where_list.append(f"return_date = ?")
+            where_list.append("return_date = ?")
             where_values.append(filter_attributes.return_date)
 
     if min_rental_date is not None:
@@ -605,15 +598,15 @@ def get_filtered_waitlist(
     where_values = []
     if filter_attributes is not None:
         if filter_attributes.item_id is not None:
-            where_list.append(f"item_id = ?")
+            where_list.append("item_id = ?")
             where_values.append(filter_attributes.item_id)
 
         if filter_attributes.customer_id is not None:
-            where_list.append(f"customer_id = ?")
+            where_list.append("customer_id = ?")
             where_values.append(filter_attributes.customer_id)
 
         if filter_attributes.place_in_line is not None:
-            where_list.append(f"place_in_line = ?")
+            where_list.append("place_in_line = ?")
             where_values.append(filter_attributes.place_in_line)
 
     if min_place_in_line != -1:
