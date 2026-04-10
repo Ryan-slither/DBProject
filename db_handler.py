@@ -165,7 +165,26 @@ def rent_item(item_id: str | None = None, customer_id: str | None = None):
     item_id - A string containing the Item ID for the item being rented.
     customer_id - A string containing the customer id of the customer renting the item.
     """
-    raise NotImplementedError("you must implement this function")
+    if item_id is None:
+        raise ValueError("item_id cannot be None")
+    
+    if customer_id is None:
+        raise ValueError("customer_id cannot be None")
+
+    query = """
+            INSERT INTO rental (item_id, customer_id, rental_date, due_date)
+            VALUES (
+                ?, ?, CURRENT_DATE(), DATE_ADD(CURRENT_DATE(), INTERVAL 14 DAY)
+            );
+            """
+
+    cur.execute(
+        query,
+        (
+            item_id,
+            customer_id
+        ),
+    )
 
 
 def waitlist_customer(
@@ -174,7 +193,30 @@ def waitlist_customer(
     """
     Returns the customer's new place in line.
     """
-    raise NotImplementedError("you must implement this function")
+    if item_id is None:
+        raise ValueError("item_id cannot be None")
+    
+    if customer_id is None:
+        raise ValueError("customer_id cannot be None")
+    
+    cur.execute("SELECT COUNT(*) FROM waitlist")
+    last_line_place = cur.fetchone()[0] + 1
+
+    query = """
+            INSERT INTO waitlist (item_id, customer_id, place_in_line)
+            VALUES (
+                ?, ?, ?
+            );
+            """
+
+    cur.execute(
+        query,
+        (
+            item_id,
+            customer_id,
+            last_line_place
+        ),
+    )
 
 
 def update_waitlist(item_id: str | None = None):
