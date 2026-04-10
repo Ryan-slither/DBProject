@@ -98,14 +98,66 @@ def add_customer(new_customer: Customer | None = None):
     )
 
 
-def edit_customer(
-    original_customer_id: str | None = None, new_customer: Customer | None = None
-):
+def edit_customer(original_customer_id: str, new_customer: Customer | None = None):
     """
     original_customer_id - A string containing the customer id for the customer to be edited.
     new_customer - A Customer object containing attributes to update. If an attribute is None, it should not be altered.
     """
-    raise NotImplementedError("you must implement this function")
+    query = """
+            UPDATE customer
+            SET 
+            """
+    update_list = []
+    update_values = []
+    if new_customer is not None:
+        if new_customer.customer_id is not None:
+            update_list.append("c_customer_id = ?")
+            update_values.append(new_customer.customer_id)
+
+        if new_customer.email is not None:
+            update_list.append("c_email_address = ?")
+            update_values.append(new_customer.email)
+
+        if new_customer.name is not None:
+            first_name, last_name = new_customer.name.split(" ")
+            update_list.append("c_first_name = ?, c_last_name = ?")
+            update_values.append(first_name)
+            update_values.append(last_name)
+
+        if new_customer.address is not None:
+            ca_query = """
+                       SELECT c_current_addr_sk
+                       FROM customer
+                       WHERE c_customer_id = ?;
+                       """
+            cur.execute(ca_query, (original_customer_id,))
+            addr_sk = cur.fetchone()[0]
+
+            street_info, city, state_info = map(
+                lambda x: x.strip(), new_customer.address.split(",")
+            )
+            street_number, street_name = street_info.split(" ", maxsplit=1)
+            state, zip = state_info.split(" ")
+
+            ca_sk_query = """
+                         UPDATE customer_address
+                         SET ca_street_number = ?, ca_street_name = ?, ca_city = ?, ca_state = ?, ca_zip = ?
+                         WHERE ca_address_sk = ?;
+                         """
+            cur.execute(
+                ca_sk_query, (street_number, street_name, city, state, zip, addr_sk)
+            )
+
+    if len(update_list) == 0:
+        return
+
+    for update in update_list:
+        query += update
+        if update != update_list[-1]:
+            query += ", "
+
+    query += ";"
+    cur.execute(query, tuple(update_values))
 
 
 def rent_item(item_id: str | None = None, customer_id: str | None = None):
