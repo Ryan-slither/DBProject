@@ -219,18 +219,49 @@ def update_waitlist(item_id: str | None = None):
     raise NotImplementedError("you must implement this function")
 
 
-def return_item(item_id: str | None = None, customer_id: str | None = None):
+def return_item(item_id: str, customer_id: str):
     """
     Moves a rental from rental to rental_history with return_date = today.
     """
-    raise NotImplementedError("you must implement this function")
+    cur.execute(
+        """
+        SELECT *
+        FROM rental
+        WHERE item_id = ? AND customer_id = ?;
+    """,
+        (item_id, customer_id),
+    )
+    rental = cur.fetchone()
+
+    cur.execute(
+        """
+        DELETE FROM rental
+        WHERE item_id = ? AND customer_id = ?;
+    """,
+        (item_id, customer_id),
+    )
+
+    cur.execute(
+        """
+        INSERT INTO rental_history
+        VALUES (?, ?, ?, ?, CURRENT_DATE());
+    """,
+        (rental[0], rental[1], rental[2], rental[3]),
+    )
 
 
-def grant_extension(item_id: str | None = None, customer_id: str | None = None):
+def grant_extension(item_id: str, customer_id: str):
     """
     Adds 14 days to the due_date.
     """
-    raise NotImplementedError("you must implement this function")
+    cur.execute(
+        """
+        UPDATE rental
+        SET due_date = DATE_ADD(due_date, INTERVAL 14 DAY)
+        WHERE item_id = ? AND customer_id = ?;
+    """,
+        (item_id, customer_id),
+    )
 
 
 def get_filtered_items(
@@ -656,7 +687,15 @@ def line_length(item_id: str | None = None) -> int:
     """
     Returns how many people are on the waitlist for this item.
     """
-    raise NotImplementedError("you must implement this function")
+    cur.execute(
+        """
+        SELECT COUNT(*)
+        FROM waitlist
+        WHERE item_id = ?;
+    """,
+        (item_id,),
+    )
+    return cur.fetchone()[0]
 
 
 def save_changes():
