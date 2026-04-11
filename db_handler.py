@@ -225,7 +225,7 @@ def update_waitlist(item_id: str | None = None):
             WHERE item_id = ?
             AND place_in_line = 1;
         """,
-        (item_id,)
+        (item_id,),
     )
 
     cur.execute(
@@ -234,7 +234,7 @@ def update_waitlist(item_id: str | None = None):
             SET place_in_line = place_in_line - 1
             WHERE item_id = ?;
         """,
-        (item_id,)
+        (item_id,),
     )
 
 
@@ -695,11 +695,25 @@ def number_in_stock(item_id: str | None = None) -> int:
     raise NotImplementedError("you must implement this function")
 
 
-def place_in_line(item_id: str | None = None, customer_id: str | None = None) -> int:
+def place_in_line(item_id: str, customer_id: str) -> int:
     """
     Returns the customer's place_in_line, or -1 if not on waitlist.
     """
-    raise NotImplementedError("you must implement this function")
+    cur.execute(
+        """
+        SELECT COALESCE(
+            (
+                SELECT place_in_line
+                FROM waitlist
+                WHERE item_id = ?
+                    AND customer_id = ?
+            ),
+            -1
+        ) AS res;
+    """,
+        (item_id, customer_id),
+    )
+    return cur.fetchone()[0]
 
 
 def line_length(item_id: str | None = None) -> int:
