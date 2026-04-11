@@ -526,14 +526,12 @@ def get_filtered_rentals(
                 query += " AND "
 
     query += ";"
-    print("get_filtered_rentals completed")
-    print()
     cur.execute(query, tuple(where_values))
     rentals = []
     for row in cur:
         rentals.append(
             Rental(
-                item_id=row[1], customer_id=row[2], rental_date=row[3], due_date=row[4]
+                item_id=row[0], customer_id=row[1], rental_date=str(row[2]), due_date=str(row[3])
             )
         )
 
@@ -613,18 +611,16 @@ def get_filtered_rental_histories(
                 query += " AND "
 
     query += ";"
-    print(query)
-    print()
     cur.execute(query, tuple(where_values))
     rentalHistories = []
     for row in cur:
         rentalHistories.append(
             RentalHistory(
-                item_id=row[1],
-                customer_id=row[2],
-                rental_date=row[3],
-                due_date=row[4],
-                return_date=row[5],
+                item_id=row[0],
+                customer_id=row[1],
+                rental_date=str(row[2]),
+                due_date=str(row[3]),
+                return_date=str(row[4]),
             )
         )
 
@@ -676,13 +672,11 @@ def get_filtered_waitlist(
                 query += " AND "
 
     query += ";"
-    print(query)
-    print()
     cur.execute(query, tuple(where_values))
     waitlists = []
     for row in cur:
         waitlists.append(
-            Waitlist(item_id=row[1], customer_id=row[2], place_in_line=row[3])
+            Waitlist(item_id=row[0], customer_id=row[1], place_in_line=row[2])
         )
 
     return waitlists
