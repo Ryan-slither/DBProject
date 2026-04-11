@@ -194,7 +194,7 @@ def waitlist_customer(
     if customer_id is None:
         raise ValueError("customer_id cannot be None")
 
-    cur.execute("SELECT COUNT(*) FROM waitlist")
+    cur.execute("SELECT COUNT(*) FROM waitlist WHERE item_id = ?", (item_id,))
     last_line_place = cur.fetchone()[0] + 1
 
     query = """
@@ -216,7 +216,26 @@ def update_waitlist(item_id: str | None = None):
     """
     Removes person at position 1 and shifts everyone else down by 1.
     """
-    raise NotImplementedError("you must implement this function")
+    if item_id is None:
+        raise ValueError("item_id cannot be None")
+
+    cur.execute(
+        """
+            DELETE FROM waitlist
+            WHERE item_id = ?
+            AND place_in_line = 1;
+        """,
+        (item_id,)
+    )
+
+    cur.execute(
+        """
+            UPDATE waitlist
+            SET place_in_line = place_in_line - 1
+            WHERE item_id = ?;
+        """,
+        (item_id,)
+    )
 
 
 def return_item(item_id: str, customer_id: str):
