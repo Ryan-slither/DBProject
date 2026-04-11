@@ -692,7 +692,34 @@ def number_in_stock(item_id: str | None = None) -> int:
     """
     Returns num_owned - active rentals. Returns -1 if item doesn't exist.
     """
-    raise NotImplementedError("you must implement this function")
+    if item_id is None:
+        raise ValueError("item_id cannot be None")
+
+    cur.execute(
+        """ 
+        SELECT i_num_owned
+        FROM item
+        WHERE i_item_id = ?;
+        """,
+        (item_id,),
+    )
+    possible_item = cur.fetchone();
+    if (len(possible_item) != 0):
+        i_num_owned = possible_item[0]
+    else:
+        return -1
+
+    cur.execute(
+        """
+        SELECT COUNT(*) 
+        FROM rental 
+        WHERE item_id = ?;
+        """, 
+        (item_id,)
+    )
+    rentals_on_item = cur.fetchone()[0]
+
+    return i_num_owned - rentals_on_item;
 
 
 def place_in_line(item_id: str, customer_id: str) -> int:
