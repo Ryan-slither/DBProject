@@ -531,7 +531,10 @@ def get_filtered_rentals(
     for row in cur:
         rentals.append(
             Rental(
-                item_id=row[0], customer_id=row[1], rental_date=str(row[2]), due_date=str(row[3])
+                item_id=row[0],
+                customer_id=row[1],
+                rental_date=str(row[2]),
+                due_date=str(row[3]),
             )
         )
 
@@ -651,7 +654,7 @@ def get_filtered_waitlist(
             where_list.append("customer_id = ?")
             where_values.append(filter_attributes.customer_id)
 
-        if filter_attributes.place_in_line is not None:
+        if filter_attributes.place_in_line != -1:
             where_list.append("place_in_line = ?")
             where_values.append(filter_attributes.place_in_line)
 
