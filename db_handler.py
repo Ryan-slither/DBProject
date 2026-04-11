@@ -641,7 +641,7 @@ def get_filtered_waitlist(
     """
     query = """
             SELECT *
-            FROM Item
+            FROM waitlist
             """
 
     where_list = []
@@ -703,8 +703,8 @@ def number_in_stock(item_id: str | None = None) -> int:
         """,
         (item_id,),
     )
-    possible_item = cur.fetchone();
-    if (len(possible_item) != 0):
+    possible_item = cur.fetchone()
+    if len(possible_item) != 0:
         i_num_owned = possible_item[0]
     else:
         return -1
@@ -714,12 +714,12 @@ def number_in_stock(item_id: str | None = None) -> int:
         SELECT COUNT(*) 
         FROM rental 
         WHERE item_id = ?;
-        """, 
-        (item_id,)
+        """,
+        (item_id,),
     )
     rentals_on_item = cur.fetchone()[0]
 
-    return i_num_owned - rentals_on_item;
+    return i_num_owned - rentals_on_item
 
 
 def place_in_line(item_id: str, customer_id: str) -> int:
